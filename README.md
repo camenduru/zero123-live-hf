@@ -1,5 +1,5 @@
 ---
-title: Zer123 Live
+title: Zero-1-to-3 Live Demo
 emoji: 🐠
 colorFrom: purple
 colorTo: yellow
