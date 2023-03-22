@@ -1,6 +1,6 @@
 '''
 conda activate zero123
-cd stable-diffusion
+cd zero123
 python gradio_new.py 0
 '''
 
@@ -11,6 +11,7 @@ import gradio as gr
 import lovely_numpy
 import lovely_tensors
 import numpy as np
+import os
 import plotly.express as px
 import plotly.graph_objects as go
 import rich
@@ -27,7 +28,7 @@ from lovely_numpy import lo
 from omegaconf import OmegaConf
 from PIL import Image
 from rich import print
-from transformers import AutoFeatureExtractor #, CLIPImageProcessor
+from transformers import AutoFeatureExtractor
 from torch import autocast
 from torchvision import transforms
 
@@ -43,8 +44,8 @@ _TITLE = 'Zero-1-to-3: Zero-shot One Image to 3D Object'
 
 # This demo allows you to generate novel viewpoints of an object depicted in an input image using a fine-tuned version of Stable Diffusion.
 _DESCRIPTION = '''
-This demo allows you to control camera rotation and thereby generate novel viewpoints of an object within a single image.
-It is based on Stable Diffusion. Check out our [project webpage](https://zero123.cs.columbia.edu/) and [paper](https://arxiv.org/) if you want to learn more about the method!
+This live demo allows you to control camera rotation and thereby generate novel viewpoints of an object within a single image.
+It is based on Stable Diffusion. Check out our [project webpage](https://zero123.cs.columbia.edu/) and [paper](https://arxiv.org/pdf/2303.11328.pdf) if you want to learn more about the method!
 Note that this model is not intended for images of humans or faces, and is unlikely to work well for them.
 '''
 
@@ -319,7 +320,7 @@ def main_run(models, device, cam_vis, return_what,
     '''
     :param raw_im (PIL Image).
     '''
-    
+
     safety_checker_input = models['clip_fe'](raw_im, return_tensors='pt').to(device)
     (image, has_nsfw_concept) = models['nsfw'](
         images=np.ones((1, 3)), clip_input=safety_checker_input.pixel_values)
@@ -507,6 +508,18 @@ def run_demo(
     with open('instructions.md', 'r') as f:
         article = f.read()
 
+    # NOTE: Examples must match inputs
+    # [polar_slider, azimuth_slider, radius_slider, image_block,
+    #  preprocess_chk, scale_slider, samples_slider, steps_slider].
+    example_fns = ['1_blue_arm.png', '2_cybercar.png', '3_sushi.png', '4_blackarm.png',
+                   '5_cybercar.png', '6_burger.png', '7_london.png', '8_motor.png']
+    num_examples = len(example_fns)
+    example_fps = [os.path.join(os.path.dirname(__file__), 'assets', x) for x in example_fns]
+    example_angles = [(-40.0, -65.0, 0.0), (-30.0, 90.0, 0.0), (45.0, -15.0, 0.0), (-75.0, 100.0, 0.0),
+                      (-40.0, -75.0, 0.0), (-45.0, 0.0, 0.0), (-55.0, 90.0, 0.0), (-20.0, 125.0, 0.0)]
+    examples_full = [[*example_angles[i], example_fps[i], True, 3, 4, 50] for i in range(num_examples)]
+    print('examples_full:', examples_full)
+
     # Compose demo layout & data flow.
     demo = gr.Blocks(title=_TITLE)
 
@@ -558,7 +571,8 @@ def run_demo(
                     vis_btn = gr.Button('Visualize Angles', variant='secondary')
                     run_btn = gr.Button('Run Generation', variant='primary')
 
-                desc_output = gr.Markdown('The results will appear on the right.', visible=_SHOW_DESC)
+                desc_output = gr.Markdown(
+                    'The results will appear on the right.', visible=_SHOW_DESC)
 
             with gr.Column(scale=1.1, variant='panel'):
 
@@ -571,54 +585,24 @@ def run_demo(
                 preproc_output = gr.Image(type='pil', image_mode='RGB',
                                           label='Preprocessed input image', visible=_SHOW_INTERMEDIATE)
 
+        cam_vis = CameraVisualizer(vis_output)
+
+        gr.Examples(
+            examples=examples_full,  # NOTE: elements must match inputs list!
+            fn=partial(main_run, models, device, cam_vis, 'gen'),
+            inputs=[polar_slider, azimuth_slider, radius_slider,
+                    image_block, preprocess_chk,
+                    scale_slider, samples_slider, steps_slider],
+            outputs=[desc_output, vis_output, preproc_output, gen_output],
+            cache_examples=True,
+            run_on_click=True,
+        )
+
         gr.Markdown(article)
 
         # NOTE: I am forced to update vis_output for these preset buttons,
         # because otherwise the gradio plot always resets the plotly 3D viewpoint for some reason,
         # which might confuse the user into thinking that the plot has been updated too.
-
-        # OLD 1:
-        # left_btn.click(fn=lambda: [0.0, -90.0], #, 0.0],
-        #                inputs=[], outputs=[polar_slider, azimuth_slider]), #], radius_slider])
-        # above_btn.click(fn=lambda: [90.0, 0.0], #, 0.0],
-        #                 inputs=[], outputs=[polar_slider, azimuth_slider]), #, radius_slider])
-        # right_btn.click(fn=lambda: [0.0, 90.0], #, 0.0],
-        #                 inputs=[], outputs=[polar_slider, azimuth_slider]), #, radius_slider])
-        # random_btn.click(fn=lambda: [int(np.round(np.random.uniform(-60.0, 60.0))),
-        #                              int(np.round(np.random.uniform(-150.0, 150.0)))], #, 0.0],
-        #                 inputs=[], outputs=[polar_slider, azimuth_slider]), #, radius_slider])
-        # below_btn.click(fn=lambda: [-90.0, 0.0], #, 0.0],
-        #                 inputs=[], outputs=[polar_slider, azimuth_slider]), #, radius_slider])
-        # behind_btn.click(fn=lambda: [0.0, 180.0], #, 0.0],
-        #                  inputs=[], outputs=[polar_slider, azimuth_slider]), #, radius_slider])
-
-        # OLD 2:
-        # preset_text = ('You have selected a preset target camera view. '
-        #                'Now click Run Generation to update the results!')
-
-        # left_btn.click(fn=lambda: [0.0, -90.0, None, preset_text],
-        #                inputs=[], outputs=[polar_slider, azimuth_slider, vis_output, desc_output])
-        # above_btn.click(fn=lambda: [90.0, 0.0, None, preset_text],
-        #                 inputs=[], outputs=[polar_slider, azimuth_slider, vis_output, desc_output])
-        # right_btn.click(fn=lambda: [0.0, 90.0, None, preset_text],
-        #                 inputs=[], outputs=[polar_slider, azimuth_slider, vis_output, desc_output])
-        # random_btn.click(fn=lambda: [int(np.round(np.random.uniform(-60.0, 60.0))),
-        #                              int(np.round(np.random.uniform(-150.0, 150.0))),
-        #                              None, preset_text],
-        #                 inputs=[], outputs=[polar_slider, azimuth_slider, vis_output, desc_output])
-        # below_btn.click(fn=lambda: [-90.0, 0.0, None, preset_text],
-        #                 inputs=[], outputs=[polar_slider, azimuth_slider, vis_output, desc_output])
-        # behind_btn.click(fn=lambda: [0.0, 180.0, None, preset_text],
-        #                  inputs=[], outputs=[polar_slider, azimuth_slider, vis_output, desc_output])
-
-        # OLD 3 (does not work at all):
-        # def a():
-        #     polar_slider.value = 77.7
-        #     polar_slider.postprocess(77.7)
-        #     print('testa')
-        # left_btn.click(fn=a)
-
-        cam_vis = CameraVisualizer(vis_output)
 
         vis_btn.click(fn=partial(main_run, models, device, cam_vis, 'vis'),
                       inputs=[polar_slider, azimuth_slider, radius_slider,
@@ -641,19 +625,19 @@ def run_demo(
                        inputs=preset_inputs, outputs=preset_outputs)
         above_btn.click(fn=partial(main_run, models, device, cam_vis, 'angles_gen',
                                    -90.0, 0.0, 0.0),
-                       inputs=preset_inputs, outputs=preset_outputs)
+                        inputs=preset_inputs, outputs=preset_outputs)
         right_btn.click(fn=partial(main_run, models, device, cam_vis, 'angles_gen',
                                    0.0, 90.0, 0.0),
-                       inputs=preset_inputs, outputs=preset_outputs)
+                        inputs=preset_inputs, outputs=preset_outputs)
         random_btn.click(fn=partial(main_run, models, device, cam_vis, 'rand_angles_gen',
                                     -1.0, -1.0, -1.0),
-                       inputs=preset_inputs, outputs=preset_outputs)
+                         inputs=preset_inputs, outputs=preset_outputs)
         below_btn.click(fn=partial(main_run, models, device, cam_vis, 'angles_gen',
                                    90.0, 0.0, 0.0),
-                       inputs=preset_inputs, outputs=preset_outputs)
+                        inputs=preset_inputs, outputs=preset_outputs)
         behind_btn.click(fn=partial(main_run, models, device, cam_vis, 'angles_gen',
                                     0.0, 180.0, 0.0),
-                       inputs=preset_inputs, outputs=preset_outputs)
+                         inputs=preset_inputs, outputs=preset_outputs)
 
     demo.launch(enable_queue=True)
 
