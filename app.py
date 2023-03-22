@@ -514,7 +514,7 @@ def run_demo(
     example_fns = ['1_blue_arm.png', '2_cybercar.png', '3_sushi.png', '4_blackarm.png',
                    '5_cybercar.png', '6_burger.png', '7_london.png', '8_motor.png']
     num_examples = len(example_fns)
-    example_fps = [os.path.join(os.path.dirname(__file__), 'assets', x) for x in example_fns]
+    example_fps = [os.path.join(os.path.dirname(__file__), 'configs', x) for x in example_fns]
     example_angles = [(-40.0, -65.0, 0.0), (-30.0, 90.0, 0.0), (45.0, -15.0, 0.0), (-75.0, 100.0, 0.0),
                       (-40.0, -75.0, 0.0), (-45.0, 0.0, 0.0), (-55.0, 90.0, 0.0), (-20.0, 125.0, 0.0)]
     examples_full = [[*example_angles[i], example_fps[i], True, 3, 4, 50] for i in range(num_examples)]
