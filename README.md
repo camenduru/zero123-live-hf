@@ -10,5 +10,5 @@ pinned: false
 license: mit
 ---
 
-Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
+Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference  
 Paper is from https://arxiv.org/abs/2303.11328
