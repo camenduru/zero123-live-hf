@@ -605,22 +605,22 @@ def run_demo(
         # because otherwise the gradio plot always resets the plotly 3D viewpoint for some reason,
         # which might confuse the user into thinking that the plot has been updated too.
 
-        polar_slider.change(fn=partial(main_run, models, device, cam_vis, 'vis'),
-                      inputs=[polar_slider, azimuth_slider, radius_slider,
-                              image_block, preprocess_chk],
-                      outputs=[desc_output, vis_output, preproc_output],
-                      queue=False)
-        azimuth_slider.change(fn=partial(main_run, models, device, cam_vis, 'vis'),
-                      inputs=[polar_slider, azimuth_slider, radius_slider,
-                              image_block, preprocess_chk],
-                      outputs=[desc_output, vis_output, preproc_output],
-                      queue=False)
+        # polar_slider.change(fn=partial(main_run, models, device, cam_vis, 'vis'),
+        #               inputs=[polar_slider, azimuth_slider, radius_slider,
+        #                       image_block, preprocess_chk],
+        #               outputs=[desc_output, vis_output, preproc_output],
+        #               queue=False)
+        # azimuth_slider.change(fn=partial(main_run, models, device, cam_vis, 'vis'),
+        #               inputs=[polar_slider, azimuth_slider, radius_slider,
+        #                       image_block, preprocess_chk],
+        #               outputs=[desc_output, vis_output, preproc_output],
+        #               queue=False)
 
-        radius_slider.change(fn=partial(main_run, models, device, cam_vis, 'vis'),
-                      inputs=[polar_slider, azimuth_slider, radius_slider,
-                              image_block, preprocess_chk],
-                      outputs=[desc_output, vis_output, preproc_output],
-                      queue=False)
+        # radius_slider.change(fn=partial(main_run, models, device, cam_vis, 'vis'),
+        #               inputs=[polar_slider, azimuth_slider, radius_slider,
+        #                       image_block, preprocess_chk],
+        #               outputs=[desc_output, vis_output, preproc_output],
+        #               queue=False)
 
         vis_btn.click(fn=partial(main_run, models, device, cam_vis, 'vis'),
                       inputs=[polar_slider, azimuth_slider, radius_slider,
