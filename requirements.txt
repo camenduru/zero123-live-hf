@@ -25,5 +25,6 @@ rich==13.3.2
 lovely-numpy==0.2.8
 lovely-tensors==0.1.14
 plotly==5.13.1
+pydantic==1.10.6
 -e git+https://github.com/CompVis/taming-transformers.git@master#egg=taming-transformers
 -e git+https://github.com/openai/CLIP.git@main#egg=clip
