@@ -21,7 +21,7 @@ gradio==3.21.0
 diffusers==0.12.1
 datasets[vision]==2.4.0
 carvekit-colab==4.1.0
-rich>=13.3.2
+rich==13.3.2
 lovely-numpy==0.2.8
 lovely-tensors==0.1.14
 plotly==5.13.1
