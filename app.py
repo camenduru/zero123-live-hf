@@ -19,7 +19,7 @@ import sys
 import time
 import torch
 from contextlib import nullcontext
-from diffusers.pipelines.stable_diffusion import StableDiffusionSafetyChecker
+# from diffusers.pipelines.stable_diffusion import StableDiffusionSafetyChecker
 from einops import rearrange
 from functools import partial
 from ldm.models.diffusion.ddim import DDIMSampler
@@ -488,9 +488,9 @@ def run_demo(
     models['turncam'] = load_model_from_config(config, ckpt, device=device)
     print('Instantiating Carvekit HiInterface...')
     models['carvekit'] = create_carvekit_interface()
-    print('Instantiating StableDiffusionSafetyChecker...')
-    models['nsfw'] = StableDiffusionSafetyChecker.from_pretrained(
-        'CompVis/stable-diffusion-safety-checker').to(device)
+    # print('Instantiating StableDiffusionSafetyChecker...')
+    # models['nsfw'] = StableDiffusionSafetyChecker.from_pretrained(
+    #     'CompVis/stable-diffusion-safety-checker').to(device)
     print('Instantiating AutoFeatureExtractor...')
     models['clip_fe'] = AutoFeatureExtractor.from_pretrained(
         'CompVis/stable-diffusion-safety-checker')
